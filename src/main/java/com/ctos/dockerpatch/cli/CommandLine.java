@@ -4,6 +4,8 @@ package com.ctos.dockerpatch.cli;
 import cn.hutool.core.util.StrUtil;
 
 public class CommandLine {
+    private static final String OLD_IMG_DIR = "./old-img-dir";
+    private static final String NEW_IMG_DIR = "./new-img-dir";
 
     public static void main(String[] args) {
         //读取入参，v1.0版本入参仅两个，旧、新tar包的path
@@ -14,6 +16,7 @@ public class CommandLine {
         System.out.println("新镜像: " + args[1]);
 
         //解压tar包内容
+
 
         //比对得到本次更新的文件，并打包成tar包
 
