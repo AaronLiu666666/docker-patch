@@ -6,3 +6,4 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+#/src/main/java/com/ctos/dockerpatch/cli/OtherTest.java
