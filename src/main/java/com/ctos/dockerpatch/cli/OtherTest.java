@@ -1,8 +1,11 @@
 package com.ctos.dockerpatch.cli;
 
+import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.io.file.FileSystemUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.ctos.dockerpatch.model.DockerTar;
+import com.ctos.dockerpatch.model.FileInfo;
 import com.ctos.dockerpatch.model.Layer;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -14,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -72,9 +77,11 @@ public class OtherTest {
 //    }
 
     public static void main(String[] args) throws IOException, ArchiveException {
+
+
         DockerTar dockerTar = new DockerTar();
-        dockerTar.setManifest("manifest.json");
-        dockerTar.setRepositories("repositories");
+        dockerTar.setManifest(new FileInfo("manifest.json", 0L));
+        dockerTar.setRepositories(new FileInfo("repositories", 0L));
 
         Map<String, Layer> layerMap = new HashMap<>();
 
@@ -87,20 +94,50 @@ public class OtherTest {
             if(entry.isDirectory()) {
                 System.out.println("目录:" + name);
                 Layer layer = new Layer();
-                layer.setLayerTar(name + "layer.tar");
-                layer.setLayerVersion(name + "VERSION");
-                layer.setLayerJson(name + "json");
+                layer.setLayerDir(new FileInfo(name, entry.getLastModifiedDate().getTime()));
+                layer.setLayerTar(new FileInfo(name + "layer.tar", 0L));
+                layer.setLayerVersion(new FileInfo(name + "VERSION", 0L));
+                layer.setLayerJson(new FileInfo(name + "json", 0L));
                 layerMap.put(name, layer);
             } else {
                 System.out.println("文件:" + name);
+                //先有目录再有文件，所以当遍历到这个文件时，补充最后修改日期的信息即可
+                if(StrUtil.contains(name, "/")) {
+                    String layerName = StrUtil.split(name, "/").get(0);
+                    String layerFileName = StrUtil.split(name, "/").get(1);
+                    if(StrUtil.equals(layerFileName, "layer.tar")) {
+                        Layer layer = layerMap.get(layerName + "/");
+                        FileInfo layerTar = layer.getLayerTar();
+                        layerTar.setLastModifiedTime(entry.getLastModifiedDate().getTime());
+                        layer.setLayerTar(layerTar);
+                        layerMap.put(layerFileName, layer);
+                    }
+                    if(StrUtil.equals(layerFileName, "VERSION")) {
+                        Layer layer = layerMap.get(layerName + "/");
+                        FileInfo layerVersion = layer.getLayerVersion();
+                        layerVersion.setLastModifiedTime(entry.getLastModifiedDate().getTime());
+                        layer.setLayerVersion(layerVersion);
+                        layerMap.put(layerFileName, layer);
+                    }
+                    if(StrUtil.equals(layerFileName, "json")) {
+                        Layer layer = layerMap.get(layerName + "/");
+                        FileInfo layerJson = layer.getLayerJson();
+                        layerJson.setLastModifiedTime(entry.getLastModifiedDate().getTime());
+                        layer.setLayerJson(layerJson);
+                        layerMap.put(layerFileName, layer);
+                    }
+                }
+
                 if(!StrUtil.equals(name, "manifest.json") & StrUtil.contains(name, ".json")) {
-                    dockerTar.setJsonFile(name);
+                    dockerTar.setJsonFile(new FileInfo(name, 0L));
                 }
             }
         }
         dockerTar.setLayerMap(layerMap);
 
-        System.out.println(JSONUtil.toJsonStr(dockerTar));
+        System.out.println(JSONUtil.toJsonPrettyStr(dockerTar));
     }
+
+
 
 }

@@ -4,35 +4,35 @@ import java.util.List;
 import java.util.Map;
 
 public class DockerTar {
-    private String jsonFile;
+    private FileInfo jsonFile;
 
-    private String manifest;
+    private FileInfo manifest;
 
-    private String repositories;
+    private FileInfo repositories;
 
     private Map<String, Layer> layerMap;
 
-    public String getJsonFile() {
+    public FileInfo getJsonFile() {
         return jsonFile;
     }
 
-    public void setJsonFile(String jsonFile) {
+    public void setJsonFile(FileInfo jsonFile) {
         this.jsonFile = jsonFile;
     }
 
-    public String getManifest() {
+    public FileInfo getManifest() {
         return manifest;
     }
 
-    public void setManifest(String manifest) {
+    public void setManifest(FileInfo manifest) {
         this.manifest = manifest;
     }
 
-    public String getRepositories() {
+    public FileInfo getRepositories() {
         return repositories;
     }
 
-    public void setRepositories(String repositories) {
+    public void setRepositories(FileInfo repositories) {
         this.repositories = repositories;
     }
 

@@ -1,33 +1,43 @@
 package com.ctos.dockerpatch.model;
 
 public class Layer {
-    private String layerVersion;
+    private FileInfo layerDir;
 
-    private String layerJson;
+    private FileInfo layerVersion;
 
-    private String layerTar;
+    private FileInfo layerJson;
 
-    public String getLayerVersion() {
+    private FileInfo layerTar;
+
+    public FileInfo getLayerDir() {
+        return layerDir;
+    }
+
+    public void setLayerDir(FileInfo layerDir) {
+        this.layerDir = layerDir;
+    }
+
+    public FileInfo getLayerVersion() {
         return layerVersion;
     }
 
-    public void setLayerVersion(String layerVersion) {
+    public void setLayerVersion(FileInfo layerVersion) {
         this.layerVersion = layerVersion;
     }
 
-    public String getLayerJson() {
+    public FileInfo getLayerJson() {
         return layerJson;
     }
 
-    public void setLayerJson(String layerJson) {
+    public void setLayerJson(FileInfo layerJson) {
         this.layerJson = layerJson;
     }
 
-    public String getLayerTar() {
+    public FileInfo getLayerTar() {
         return layerTar;
     }
 
-    public void setLayerTar(String layerTar) {
+    public void setLayerTar(FileInfo layerTar) {
         this.layerTar = layerTar;
     }
 }
