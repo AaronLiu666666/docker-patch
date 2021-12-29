@@ -2,7 +2,9 @@ package com.ctos.dockerpatch.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ByteUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.SettingUtil;
@@ -14,13 +16,18 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class DockerTarUtil {
+    public static final int BUFFER_SIZE = 4096;
+
     public static DockerTar generateDockerTarInfo(String imgPath) {
         DockerTar dockerTar = new DockerTar();
         dockerTar.setManifest(new FileInfo("manifest.json", 0L));
@@ -72,7 +79,7 @@ public class DockerTarUtil {
             }
             dockerTar.setLayerMap(layerMap);
         } catch (IOException ioException) {
-            System.out.println("文件没找到:" + imgPath);
+            System.out.println("tar文件没找到:" + imgPath);
         } catch (ArchiveException archiveException) {
             System.out.println("读取tar包失败:" + imgPath);
         }
@@ -93,6 +100,7 @@ public class DockerTarUtil {
         Set<String> newDockerTarLayerSet = newDockerTarLayerMap.keySet();
         Set<String> oldDockerTarLayerSet = oldDockerTarLayerMap.keySet();
         List<String> layerToAddList = CollUtil.subtractToList(newDockerTarLayerSet, oldDockerTarLayerSet);
+        //todo,新目录的每个文件的"最后修改时间"，都必须记录
         Collection<String> layerToModifyList = CollUtil.intersection(newDockerTarLayerSet, oldDockerTarLayerSet);
 
 
@@ -106,6 +114,47 @@ public class DockerTarUtil {
         }
         dockerPatch.setLayerToModifyMap(newLayerMap);
         return dockerPatch;
+    }
+
+    public static void unTarLayersToAdd(String imgPath, String patchDir, DockerPatch dockerPatch) {
+        List<String> layerToAddList = dockerPatch.getLayerToAddList();
+
+        try {
+            FileInputStream dirStream = new FileInputStream(imgPath);
+            ArchiveInputStream tarStream = new ArchiveStreamFactory().createArchiveInputStream("tar", dirStream);
+            TarArchiveEntry entry = null;
+            while((entry = (TarArchiveEntry)tarStream.getNextEntry()) != null) {
+                String name = entry.getName();
+                for (String layerDirPath : layerToAddList) {
+                    if(StrUtil.contains(name, layerDirPath) || StrUtil.contains(name, ".json") ||
+                            StrUtil.contains(name, "repositories") ) {
+                        if(entry.isDirectory()) {
+                            continue;
+                        }
+                        File outputFile = new File(patchDir + FileUtil.FILE_SEPARATOR + name);
+                        if(!outputFile.getParentFile().exists()) {
+                            outputFile.getParentFile().mkdirs();
+                        }
+                        try {
+//                            FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+                            int len = 0;
+                            byte[] buffer = new byte[BUFFER_SIZE];
+                            while((len = tarStream.read(buffer)) > 0) {
+//                                fileOutputStream.write(buffer, 0, len);
+                                FileUtil.writeBytes(buffer, outputFile, 0, len, true);
+                            }
+                        } catch (IOException e) {
+                            System.out.println("生成解压后的文件失败，文件名" + name + ", " + e);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ioException) {
+            System.out.println("tar文件没找到:" + imgPath);
+        } catch (ArchiveException archiveException) {
+            System.out.println("读取tar包失败:" + imgPath);
+        }
+        //关闭input
     }
 
     /**

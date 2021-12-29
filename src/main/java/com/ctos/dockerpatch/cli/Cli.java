@@ -1,6 +1,7 @@
 package com.ctos.dockerpatch.cli;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.ByteUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.ctos.dockerpatch.model.DockerPatch;
@@ -20,14 +21,14 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Cli {
-    private static final String OLD_IMG_DIR = "./old-img-dir";
-    private static final String NEW_IMG_DIR = "./new-img-dir";
+    private static final String PATCH_DIR_NAME = "patch-dir";
 
     public static void main(String[] args) {
         Options options = new Options();
@@ -54,10 +55,21 @@ public class Cli {
                 System.out.println(JSONUtil.toJsonPrettyStr(dockerPatch));
 
                 //解压出必要文件，打包成tar包;将待更新的文件日期、新镜像名存入数据结构
-
+                String parentDir = FileUtil.file(newImgPath).getParentFile().getAbsolutePath();
+                String patchDir = parentDir + FileUtil.FILE_SEPARATOR + PATCH_DIR_NAME;
+                FileUtil.mkdir(patchDir);
+                if(!FileUtil.isDirectory(patchDir)) {
+                    System.out.println("创建解压目录失败");
+                    return;
+                }
+                DockerTarUtil.unTarLayersToAdd(newImgPath, patchDir, dockerPatch);
                 //将数据结构写入json文件
+                String dockerPatchJsonStr = JSONUtil.toJsonPrettyStr(dockerPatch);
+                byte[] dockerPatchBytes = StrUtil.bytes(dockerPatchJsonStr);
+                FileUtil.writeBytes(dockerPatchBytes, patchDir + FileUtil.FILE_SEPARATOR + "docker-patch.txt");
 
                 //打tar包，删除解压后的目录
+
             }
 
             if(cmd.hasOption("m")) {
