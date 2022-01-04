@@ -1,7 +1,6 @@
 package com.ctos.dockerpatch.model;
 
 import java.util.List;
-import java.util.Map;
 
 public class DockerPatch {
     /**
@@ -10,9 +9,14 @@ public class DockerPatch {
     private List<String> layerToAddList;
 
     /**
-     * 旧版本中依然保留，但需要修改"最后修改时间"的文件信息
+     * 旧版本中有，但新版本中没有的layer名称（需要删除）
      */
-    private Map<String, Layer> layerToModifyMap;
+    private List<String> layerToDeleteList;
+
+    /**
+     * 新docker镜像中文件的"最后修改时间"
+     */
+    private DockerTar newDockerTar;
 
     public List<String> getLayerToAddList() {
         return layerToAddList;
@@ -22,11 +26,20 @@ public class DockerPatch {
         this.layerToAddList = layerToAddList;
     }
 
-    public Map<String, Layer> getLayerToModifyMap() {
-        return layerToModifyMap;
+    public List<String> getLayerToDeleteList() {
+        return layerToDeleteList;
     }
 
-    public void setLayerToModifyMap(Map<String, Layer> layerToModifyMap) {
-        this.layerToModifyMap = layerToModifyMap;
+    public void setLayerToDeleteList(List<String> layerToDeleteList) {
+        this.layerToDeleteList = layerToDeleteList;
     }
+
+    public DockerTar getNewDockerTar() {
+        return newDockerTar;
+    }
+
+    public void setNewDockerTar(DockerTar newDockerTar) {
+        this.newDockerTar = newDockerTar;
+    }
+
 }

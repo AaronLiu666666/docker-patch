@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DockerTar {
+    private FileInfo imageName;
+
     private FileInfo jsonFile;
 
     private FileInfo manifest;
@@ -11,6 +13,14 @@ public class DockerTar {
     private FileInfo repositories;
 
     private Map<String, Layer> layerMap;
+
+    public FileInfo getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(FileInfo imageName) {
+        this.imageName = imageName;
+    }
 
     public FileInfo getJsonFile() {
         return jsonFile;
