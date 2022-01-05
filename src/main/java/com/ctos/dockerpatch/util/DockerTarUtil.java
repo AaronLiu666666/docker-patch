@@ -19,7 +19,7 @@ import java.util.*;
 public class DockerTarUtil {
     private static final String PATCH_DIR_NAME = "patch-dir";
 
-    public static final int BUFFER_SIZE = 4096;
+    public static final int BUFFER_SIZE = 50 * 1024 * 1024;
 
     public static DockerTar generateDockerTarInfo(String imgPath) {
         File image = new File(imgPath);
